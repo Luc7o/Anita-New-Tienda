@@ -1,0 +1,8 @@
+node_modules/
+dist/
+
+# Variables de entorno (se sube solo .env.example)
+.env
+.env.*
+!.env.example
+env
