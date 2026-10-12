@@ -219,13 +219,9 @@ export default function ProductoDetalle() {
     favoritos?.alternar(producto.id);
   };
 
+  // Agregar y comprar NO exigen cuenta: el carrito funciona sin registrarse y
+  // el correo se pide recién al pagar (ver Checkout).
   const handleAgregar = async () => {
-    if (!usuario) {
-      // Guardamos desde dónde vino para que, si elige "Comprar sin crear
-      // cuenta", vuelva acá mismo en vez de al inicio.
-      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
-      return;
-    }
     setAgregando(true);
     setMensaje("");
     try {
@@ -240,10 +236,6 @@ export default function ProductoDetalle() {
   };
 
   const handleComprar = async () => {
-    if (!usuario) {
-      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
-      return;
-    }
     setAgregando(true);
     setMensaje("");
     try {

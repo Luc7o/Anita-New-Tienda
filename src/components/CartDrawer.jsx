@@ -20,9 +20,22 @@ export default function CartDrawer() {
     }
   };
 
+  const quitar = async (itemId) => {
+    setErrorPorItem((prev) => ({ ...prev, [itemId]: null }));
+    try {
+      await eliminar(itemId);
+    } catch (err) {
+      setErrorPorItem((prev) => ({ ...prev, [itemId]: err.message }));
+    }
+  };
+
   const refDialogo = useFocusTrap(drawerAbierto, () => setDrawerAbierto(false));
 
   if (!drawerAbierto) return null;
+
+  // Una línea con "problema" (por ejemplo, el stock bajó desde que se agregó)
+  // sigue visible para que la persona la corrija, pero no se puede pagar así.
+  const hayProblemas = items.some((item) => item.problema);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -52,20 +65,16 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {!usuario ? (
+        {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center text-plum-soft">
-            <p>Ingresa a tu cuenta para ver tu carrito.</p>
+            <p>Tu carrito está vacío por ahora.</p>
             <Link
-              to="/ingresar"
+              to="/tienda"
               onClick={() => setDrawerAbierto(false)}
               className="rounded-full bg-berry px-5 py-2 text-sm font-semibold text-white shadow-glass"
             >
-              Ingresar
+              Ver productos
             </Link>
-          </div>
-        ) : items.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-plum-soft">
-            Tu carrito está vacío por ahora.
           </div>
         ) : (
           <>
@@ -103,12 +112,15 @@ export default function CartDrawer() {
                         S/ {item.subtotal.toFixed(2)}
                       </span>
                     </div>
+                    {item.problema && (
+                      <p className="mt-1 text-xs text-berry-dark" role="alert">{item.problema}</p>
+                    )}
                     {errorPorItem[item.id] && (
                       <p className="mt-1 text-xs text-berry-dark" role="alert">{errorPorItem[item.id]}</p>
                     )}
                   </div>
                   <button
-                    onClick={() => eliminar(item.id)}
+                    onClick={() => quitar(item.id)}
                     className="self-start text-plum-soft hover:text-berry"
                     aria-label="Quitar producto"
                   >
@@ -123,10 +135,23 @@ export default function CartDrawer() {
                 <span>Total</span>
                 <span>S/ {total.toFixed(2)}</span>
               </div>
+              {hayProblemas && (
+                <p className="text-xs text-berry-dark" role="alert">
+                  Algunos productos cambiaron de disponibilidad. Ajusta las cantidades para continuar.
+                </p>
+              )}
+              {!usuario && !hayProblemas && (
+                <p className="text-center text-xs text-plum-soft">
+                  No necesitas cuenta para comprar: solo tu correo al finalizar.
+                </p>
+              )}
               <Link
                 to="/checkout"
                 onClick={() => setDrawerAbierto(false)}
-                className="block w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark"
+                aria-disabled={hayProblemas}
+                className={`block w-full rounded-full bg-berry py-3 text-center font-semibold text-white shadow-glass transition hover:bg-berry-dark ${
+                  hayProblemas ? "pointer-events-none opacity-50" : ""
+                }`}
               >
                 Ir a pagar
               </Link>

@@ -18,11 +18,9 @@ export default function ProductCard({ producto }) {
 
   const esFavorito = favoritos?.esFavorito(producto.id);
 
+  // Comprar NO exige cuenta: el carrito funciona sin registrarse y el correo
+  // se pide recién al pagar (ver Checkout). Solo los favoritos requieren cuenta.
   const handleComprar = async () => {
-    if (!usuario) {
-      navigate("/ingresar", { state: { from: `/producto/${producto.id}` } });
-      return;
-    }
     if (necesitaOpciones) {
       navigate(`/producto/${producto.id}`);
       return;
@@ -31,6 +29,10 @@ export default function ProductCard({ producto }) {
     try {
       await agregar(producto.id);
       navigate("/checkout");
+    } catch {
+      // Sin stock u otro rechazo del servidor: llevamos a la ficha, donde se
+      // ve el detalle y las opciones disponibles.
+      navigate(`/producto/${producto.id}`);
     } finally {
       setCargando(false);
     }
